@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:homez/core/helpers/cache_helper.dart';
+import 'package:homez/core/networking/api_constants.dart';
 import 'package:homez/core/networking/dio_manager.dart';
 import 'package:logger/logger.dart';
 
@@ -18,19 +18,21 @@ class ResetPasswordCubit extends Cubit<ResetPasswordStates> {
   bool isObscure = true;
   bool isConObscure = true;
 
-  Future<void> resetPassword() async {
+  Future<void> resetPassword(
+      {required String phone, required String otp}) async {
     if (formKey.currentState!.validate()) {
       emit(ResetPasswordLoadingState());
       try {
         final response = await dioManager.post(
-          // "${ApiConstants.newResetPasswordUrl}?lang=${CacheHelper.getLang()}",
-          "",
+          ApiConstants.resetPassword,
           data: FormData.fromMap({
-            "new_password": controllers.passwordController.text,
-            "new_password_confirmation": controllers.passwordController.text,
+            'phone': phone,
+            'otp': otp,
+            "password": controllers.passwordController.text,
+            "confirm_password": controllers.confirmPasswordController.text,
           }),
           header: {
-            "Authorization": "Bearer ${CacheHelper.getToken()}",
+            "Accept": "application/json",
           },
         );
         if (response.statusCode == 200) {

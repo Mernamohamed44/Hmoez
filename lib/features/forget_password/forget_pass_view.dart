@@ -17,19 +17,25 @@ import 'forget_password_cubit.dart';
 import 'forget_password_state.dart';
 
 class ForgetPasswordViews extends StatelessWidget {
-  const ForgetPasswordViews({super.key});
+  const ForgetPasswordViews({super.key, required this.phone});
+
+  final String phone;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ForgetPasswordCubit(),
-      child: const ForgetPassBody(),
+      child: ForgetPassBody(
+        phone: phone,
+      ),
     );
   }
 }
 
 class ForgetPassBody extends StatelessWidget {
-  const ForgetPassBody({super.key});
+  const ForgetPassBody({super.key, required this.phone});
+
+  final String phone;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +64,9 @@ class ForgetPassBody extends StatelessWidget {
                 },
               ),
               32.verticalSpace,
-              _ForgetPasswordButton(cubit: cubit),
+              _ForgetPasswordButton(
+                cubit: cubit,
+              ),
             ],
           ),
         ),
@@ -106,7 +114,7 @@ class _ForgetPasswordButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<ForgetPasswordCubit, ForgetPasswordStates>(
       listener: (context, state) {
-        if (state is ForgetPasswordFailureState) {
+        if (state is OtpFailureState) {
           showMessage(
             message: state.msg,
             color: ColorManager.red,
@@ -116,15 +124,17 @@ class _ForgetPasswordButton extends StatelessWidget {
             message: "No internet connection",
             color: ColorManager.red,
           );
-        } else if (state is ForgetPasswordSuccessState) {
-          // MagicRouter.navigateTo(
-          //   page: const NavBarView(),
-          //   withHistory: false,
-          // );
+        } else if (state is OtpSuccessState) {
+          MagicRouter.navigateTo(
+            page: OtpView(
+                navigateFromForget: true,
+                phone: cubit.controllers.phoneController.text),
+            withHistory: true,
+          );
         }
       },
       builder: (context, state) {
-        if (state is ForgetPasswordLoadingState) {
+        if (state is OtpLoadingState) {
           return Center(
             child: CircularProgressIndicator(
               color: ColorManager.mainColor,
@@ -134,12 +144,12 @@ class _ForgetPasswordButton extends StatelessWidget {
         return CustomElevated(
           text: "Send Code",
           press: () {
-            // cubit.ForgetPassword();
-            MagicRouter.navigateTo(
-              page: OtpView(
-                phone: cubit.controllers.phoneController.text,
-              ),
-            );
+            cubit.sendCode(phone: cubit.controllers.phoneController.text);
+            // MagicRouter.navigateTo(
+            //   page: OtpView(
+            //     phone: cubit.controllers.phoneController.text,
+            //   ),
+            // );
           },
           btnColor: ColorManager.mainColor,
         );

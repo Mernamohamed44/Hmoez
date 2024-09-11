@@ -6,11 +6,11 @@ class CustomTabBar extends StatelessWidget {
     super.key,
     required this.tabs,
     required this.isScrollable,
-    required this.pages,
+    this.pages,
   });
 
   final List<Widget> tabs;
-  final List<Widget> pages;
+  final List<Widget>? pages;
   final bool isScrollable;
 
   @override
@@ -18,8 +18,8 @@ class CustomTabBar extends StatelessWidget {
     return Column(
       children: [
         Container(
-          height: 43,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          height: 55,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           margin: const EdgeInsets.symmetric(horizontal: 40),
           decoration: BoxDecoration(
               color: ColorManager.bgColor,
@@ -48,12 +48,13 @@ class CustomTabBar extends StatelessWidget {
             tabs: tabs,
           ),
         ),
-        Expanded(
-          child: TabBarView(
-            physics: const BouncingScrollPhysics(),
-            children: pages,
-          ),
-        )
+        if (pages != null)
+          Expanded(
+            child: TabBarView(
+              physics: const BouncingScrollPhysics(),
+              children: pages!,
+            ),
+          )
       ],
     );
   }

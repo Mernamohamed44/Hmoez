@@ -8,6 +8,8 @@ import 'package:homez/core/widgets/custom_app_bar.dart';
 import 'package:homez/core/widgets/custom_elevated.dart';
 import 'package:homez/core/widgets/custom_text.dart';
 import 'package:homez/core/widgets/snack_bar.dart';
+import 'package:homez/features/landing_screen/landing_screen_views.dart';
+import 'package:homez/features/login/view.dart';
 import 'package:homez/features/reset_password/view.dart';
 
 import 'components/pinput.dart';
@@ -15,15 +17,25 @@ import 'cubit.dart';
 import 'states.dart';
 
 class OtpView extends StatelessWidget {
-  const OtpView({super.key, required this.phone});
+  const OtpView(
+      {super.key,
+      required this.phone,
+      this.navigateFromForget = false,
+      this.navigateFromProfile = false});
 
   final String phone;
+  final bool navigateFromForget;
+  final bool navigateFromProfile;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => OtpCubit(),
-      child: _OtpBody(phone: phone),
+      child: _OtpBody(
+        phone: phone,
+        navigateFromForget: navigateFromForget,
+        navigateFromProfile: navigateFromProfile,
+      ),
     );
   }
 }
@@ -31,9 +43,13 @@ class OtpView extends StatelessWidget {
 class _OtpBody extends StatelessWidget {
   const _OtpBody({
     required this.phone,
+    required this.navigateFromForget,
+    required this.navigateFromProfile,
   });
 
+  final bool navigateFromForget;
   final String phone;
+  final bool navigateFromProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +83,17 @@ class _OtpBody extends StatelessWidget {
               PinPutWidget(
                 controller: otpCubit.otpController,
               ),
-              _VerifyOtpButton(otpCubit: otpCubit),
+              _VerifyOtpButton(
+                otpCubit: otpCubit,
+                phone: phone,
+                navigateFromForget: navigateFromForget,
+                navigateFromProfile: navigateFromProfile,
+              ),
               SizedBox(height: 0.04.sh),
-              const _ResendLineWidget(),
+              _ResendLineWidget(
+                otpCubit: otpCubit,
+                phone: phone,
+              ),
               SizedBox(height: 0.2.sh),
             ],
           ),
@@ -80,9 +104,16 @@ class _OtpBody extends StatelessWidget {
 }
 
 class _VerifyOtpButton extends StatelessWidget {
-  const _VerifyOtpButton({required this.otpCubit});
+  const _VerifyOtpButton(
+      {required this.otpCubit,
+      required this.phone,
+      required this.navigateFromForget,
+      required this.navigateFromProfile});
 
   final OtpCubit otpCubit;
+  final String phone;
+  final bool navigateFromForget;
+  final bool navigateFromProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -94,9 +125,26 @@ class _VerifyOtpButton extends StatelessWidget {
             color: ColorManager.red,
           );
         } else if (state is OtpSuccessState) {
-          MagicRouter.navigateReplacement(
-            page: const ResetPasswordView(),
-          );
+          if (navigateFromProfile) {
+            showMessage(
+              message: "Phone Updated Successfully",
+              color: ColorManager.green,
+            );
+            MagicRouter.navigateReplacement(
+              page: const LandingScreenViews(),
+            );
+          } else {
+            navigateFromForget
+                ? MagicRouter.navigateReplacement(
+                    page: ResetPasswordView(
+                      phone: phone,
+                      otp: otpCubit.otpController.text,
+                    ),
+                  )
+                : MagicRouter.navigateReplacement(
+                    page: const LoginView(),
+                  );
+          }
         }
       },
       builder: (context, state) {
@@ -116,12 +164,15 @@ class _VerifyOtpButton extends StatelessWidget {
                 color: ColorManager.red,
               );
             } else {
-              // otpCubit.verifyOtp(
-              //   phone: widget.email,
-              // );
-              MagicRouter.navigateReplacement(
-                page: const ResetPasswordView(),
-              );
+              if (navigateFromProfile) {
+                otpCubit.updatePhone(phone: phone);
+              } else {
+                navigateFromForget
+                    ? otpCubit.checkCode(phone: phone)
+                    : otpCubit.confirmCode(
+                        phone: phone,
+                      );
+              }
             }
           },
           btnColor: ColorManager.mainColor,
@@ -132,36 +183,60 @@ class _VerifyOtpButton extends StatelessWidget {
 }
 
 class _ResendLineWidget extends StatelessWidget {
-  const _ResendLineWidget({super.key});
+  const _ResendLineWidget(
+      {super.key, required this.otpCubit, required this.phone});
+
+  final OtpCubit otpCubit;
+  final String phone;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          text: "If you didn’t receive the code?  ",
-          style: TextStyle(
-            color: ColorManager.white,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w400,
-          ),
-          children: [
-            TextSpan(
-              text: "Resend",
-              style: TextStyle(
-                color: ColorManager.mainColor,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  debugPrint("resend");
-                },
+    return BlocConsumer<OtpCubit, OtpStates>(
+      listener: (context, state) {
+        if (state is ReSendCodeFailedState) {
+          showMessage(
+            message: state.msg,
+            color: ColorManager.red,
+          );
+        } else if (state is ReSendCodeSuccessState) {}
+      },
+      builder: (context, state) {
+        if (state is ReSendCodeLoadingState) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: ColorManager.mainColor,
             ),
-          ],
-        ),
-      ),
+          );
+        }
+        return Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              text: "If you didn’t receive the code?  ",
+              style: TextStyle(
+                color: ColorManager.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w400,
+              ),
+              children: [
+                TextSpan(
+                  text: "Resend",
+                  style: TextStyle(
+                    color: ColorManager.mainColor,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      debugPrint("resend");
+                      otpCubit.reSendOtp(phone: phone);
+                    },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

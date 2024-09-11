@@ -15,19 +15,28 @@ import 'states.dart';
 import 'widgets/success_dialog.dart';
 
 class ResetPasswordView extends StatelessWidget {
-  const ResetPasswordView({super.key});
+  const ResetPasswordView({super.key, required this.phone, required this.otp});
+
+  final String phone;
+  final String otp;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: ResetPasswordCubit(),
-      child: const _ResetPasswordBody(),
+      child: _ResetPasswordBody(
+        phone: phone,
+        otp: otp,
+      ),
     );
   }
 }
 
 class _ResetPasswordBody extends StatelessWidget {
-  const _ResetPasswordBody();
+  const _ResetPasswordBody({required this.phone, required this.otp});
+
+  final String phone;
+  final String otp;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +86,11 @@ class _ResetPasswordBody extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 0.05.sh),
-                _ResetPasswordButton(cubit: cubit),
+                _ResetPasswordButton(
+                  cubit: cubit,
+                  phone: phone,
+                  otp: otp,
+                ),
                 SizedBox(height: 0.2.sh),
               ],
             ),
@@ -187,9 +200,13 @@ class _ConfPassTextField extends StatelessWidget {
 class _ResetPasswordButton extends StatelessWidget {
   const _ResetPasswordButton({
     required this.cubit,
+    required this.phone,
+    required this.otp,
   });
 
   final ResetPasswordCubit cubit;
+  final String phone;
+  final String otp;
 
   @override
   Widget build(BuildContext context) {
@@ -206,10 +223,7 @@ class _ResetPasswordButton extends StatelessWidget {
             color: ColorManager.red,
           );
         } else if (state is ResetPasswordSuccessState) {
-          // MagicRouter.navigateTo(
-          //   page: const ChangedPasswordSuccessView(),
-          //   withHistory: false,
-          // );
+          successDialog(context: context);
         }
       },
       builder: (context, state) {
@@ -223,8 +237,7 @@ class _ResetPasswordButton extends StatelessWidget {
         return CustomElevated(
           text: "Reset Password",
           press: () {
-            // cubit.resetPassword();
-            successDialog(context: context);
+            cubit.resetPassword(phone: phone, otp: otp);
           },
           btnColor: ColorManager.mainColor,
         );

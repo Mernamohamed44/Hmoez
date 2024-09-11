@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:homez/core/helpers/cache_helper.dart';
 import 'package:homez/core/helpers/navigator.dart';
 import 'package:homez/core/theming/assets.dart';
 import 'package:homez/core/theming/colors.dart';
+import 'package:homez/features/landing_screen/landing_screen_views.dart';
+import 'package:homez/features/login/view.dart';
 import 'package:homez/features/on_boarding/view.dart';
 
 class SplashView extends StatefulWidget {
@@ -20,11 +23,18 @@ class _SplashViewState extends State<SplashView> {
   }
 
   _goNext() async {
+    bool isFirstTime = CacheHelper.getIfFirstTime();
+    String token = CacheHelper.getToken();
+
     await Future.delayed(
       const Duration(seconds: 5),
       () {
         MagicRouter.navigateTo(
-          page: const OnBoardingView(),
+          page: isFirstTime
+              ? const OnBoardingView()
+              : token.isEmpty
+                  ? const LoginView()
+                  : const LandingScreenViews(),
           withHistory: false,
         );
       },

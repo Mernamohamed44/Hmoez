@@ -81,7 +81,9 @@ class _LoginBody extends StatelessWidget {
                 SizedBox(height: 0.027.sh),
                 const Center(child: RegisterLineWidget()),
                 SizedBox(height: 0.027.sh),
-                const _OrLineWithAuthGoogle(),
+                _OrLineWithAuthGoogle(
+                  cubit: cubit,
+                ),
                 SizedBox(height: 0.15.sh),
               ],
             ),
@@ -184,7 +186,9 @@ class _ForgetPasswordWidget extends StatelessWidget {
             TextButton(
               onPressed: () {
                 MagicRouter.navigateTo(
-                  page: const ForgetPasswordViews(),
+                  page: ForgetPasswordViews(
+                    phone: cubit.controllers.phoneController.text,
+                  ),
                 );
               },
               child: CustomText(
@@ -221,10 +225,10 @@ class _LoginButton extends StatelessWidget {
             color: ColorManager.red,
           );
         } else if (state is LoginSuccessState) {
-          // MagicRouter.navigateTo(
-          //   page: const NavBarView(),
-          //   withHistory: false,
-          // );
+          MagicRouter.navigateTo(
+            page: const LandingScreenViews(),
+            withHistory: false,
+          );
         }
       },
       builder: (context, state) {
@@ -238,11 +242,7 @@ class _LoginButton extends StatelessWidget {
         return CustomElevated(
           text: "Sign In",
           press: () {
-            // cubit.login();
-            MagicRouter.navigateTo(
-              page: const LandingScreenViews(),
-              withHistory: false,
-            );
+            cubit.login();
           },
           btnColor: ColorManager.mainColor,
         );
@@ -252,7 +252,9 @@ class _LoginButton extends StatelessWidget {
 }
 
 class _OrLineWithAuthGoogle extends StatelessWidget {
-  const _OrLineWithAuthGoogle();
+  const _OrLineWithAuthGoogle({required this.cubit});
+
+  final LoginCubit cubit;
 
   @override
   Widget build(BuildContext context) {
@@ -263,19 +265,77 @@ class _OrLineWithAuthGoogle extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: SvgPicture.asset(
-                AssetsStrings.google,
-                height: 60.h,
-              ),
+            BlocConsumer<LoginCubit, LoginStates>(
+              listener: (context, state) {
+                if (state is SignInWithGoogleFailedState) {
+                  showMessage(
+                    message: state.msg,
+                    color: ColorManager.red,
+                  );
+                } else if (state is NetworkErrorState) {
+                  showMessage(
+                    message: "No internet connection",
+                    color: ColorManager.red,
+                  );
+                } else if (state is SignInWithGoogleSuccessState) {
+                  MagicRouter.navigateTo(
+                    page: const LandingScreenViews(),
+                    withHistory: false,
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is SignInWithGoogleLoadingState) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: ColorManager.mainColor,
+                    ),
+                  );
+                }
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      cubit.signInWithGoogle();
+                    },
+                    child: SvgPicture.asset(
+                      AssetsStrings.google,
+                      height: 60.h,
+                    ),
+                  ),
+                );
+              },
             ),
             SizedBox(width: 20.w),
-            Expanded(
-              child: SvgPicture.asset(
-                AssetsStrings.apple,
-                height: 60.h,
-              ),
-            ),
+            BlocConsumer<LoginCubit, LoginStates>(listener: (context, state) {
+              if (state is SignInWithAppleFailedState) {
+                showMessage(
+                  message: state.msg,
+                  color: ColorManager.red,
+                );
+              } else if (state is NetworkErrorState) {
+                showMessage(
+                  message: "No internet connection",
+                  color: ColorManager.red,
+                );
+              } else if (state is SignInWithAppleSuccessState) {
+                MagicRouter.navigateTo(
+                  page: const LandingScreenViews(),
+                  withHistory: false,
+                );
+              }
+            }, builder: (context, state) {
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    cubit.signInWithApple();
+                  },
+                  child: SvgPicture.asset(
+                    AssetsStrings.apple,
+                    height: 60.h,
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ],

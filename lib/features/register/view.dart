@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:homez/core/helpers/navigator.dart';
 import 'package:homez/core/theming/assets.dart';
 import 'package:homez/core/theming/colors.dart';
 import 'package:homez/core/widgets/custom_app_bar.dart';
@@ -9,6 +11,9 @@ import 'package:homez/core/widgets/custom_elevated.dart';
 import 'package:homez/core/widgets/custom_text_form_field.dart';
 import 'package:homez/core/widgets/snack_bar.dart';
 import 'package:homez/core/widgets/svg_icons.dart';
+import 'package:homez/features/landing_screen/landing_screen_views.dart';
+import 'package:homez/features/login/components/or_divider.dart';
+import 'package:homez/features/otp/view.dart';
 
 import 'cubit.dart';
 import 'states.dart';
@@ -73,6 +78,9 @@ class _RegisterBody extends StatelessWidget {
                 SizedBox(height: 0.04.sh),
                 _RegisterButton(cubit: cubit),
                 SizedBox(height: 0.15.sh),
+                _OrLineWithAuthGoogle(
+                  cubit: cubit,
+                )
               ],
             ),
           ),
@@ -258,10 +266,12 @@ class _RegisterButton extends StatelessWidget {
             color: ColorManager.red,
           );
         } else if (state is RegisterSuccessState) {
-          // MagicRouter.navigateTo(
-          //   page: const NavBarView(),
-          //   withHistory: false,
-          // );
+          MagicRouter.navigateTo(
+            page: OtpView(
+              phone: cubit.controllers.phoneController.text,
+            ),
+            withHistory: false,
+          );
         }
       },
       builder: (context, state) {
@@ -275,7 +285,7 @@ class _RegisterButton extends StatelessWidget {
         return CustomElevated(
           text: "Sign Up",
           press: () {
-            // cubit.register();
+            cubit.register();
             // MagicRouter.navigateTo(
             //   page: const NavBarView(),
             //   withHistory: false,
@@ -284,6 +294,99 @@ class _RegisterButton extends StatelessWidget {
           btnColor: ColorManager.mainColor,
         );
       },
+    );
+  }
+}
+
+class _OrLineWithAuthGoogle extends StatelessWidget {
+  const _OrLineWithAuthGoogle({required this.cubit});
+
+  final RegisterCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const OrDividerWidget(),
+        SizedBox(height: 10.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            BlocConsumer<RegisterCubit, RegisterStates>(
+              listener: (context, state) {
+                if (state is RegisterWithGoogleFailedState) {
+                  showMessage(
+                    message: state.msg,
+                    color: ColorManager.red,
+                  );
+                } else if (state is RegisterNetworkErrorState) {
+                  showMessage(
+                    message: "No internet connection",
+                    color: ColorManager.red,
+                  );
+                } else if (state is RegisterWithGoogleSuccessState) {
+                  MagicRouter.navigateTo(
+                    page: const LandingScreenViews(),
+                    withHistory: false,
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is RegisterWithGoogleLoadingState) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: ColorManager.mainColor,
+                    ),
+                  );
+                }
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      cubit.registerWithGoogle();
+                    },
+                    child: SvgPicture.asset(
+                      AssetsStrings.google,
+                      height: 60.h,
+                    ),
+                  ),
+                );
+              },
+            ),
+            SizedBox(width: 20.w),
+            BlocConsumer<RegisterCubit, RegisterStates>(
+                listener: (context, state) {
+              if (state is RegisterWithAppleFailedState) {
+                showMessage(
+                  message: state.msg,
+                  color: ColorManager.red,
+                );
+              } else if (state is RegisterNetworkErrorState) {
+                showMessage(
+                  message: "No internet connection",
+                  color: ColorManager.red,
+                );
+              } else if (state is RegisterWithAppleSuccessState) {
+                MagicRouter.navigateTo(
+                  page: const LandingScreenViews(),
+                  withHistory: false,
+                );
+              }
+            }, builder: (context, state) {
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    cubit.registerWithApple();
+                  },
+                  child: SvgPicture.asset(
+                    AssetsStrings.apple,
+                    height: 60.h,
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -44,7 +44,7 @@ class CustomAppBarTitle extends StatelessWidget {
             text: title,
             color: color ?? ColorManager.white,
             fontSize: 22.sp,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w700,
           ),
           const Spacer(),
           SizedBox(width: 30.w),

@@ -168,13 +168,15 @@ class _DetailsBody extends StatelessWidget {
                     ],
                   ),
                   20.verticalSpace,
-                  CustomText(
-                    text:
-                        "Immaculately Renovated Townhouse In Prime Williamsburg Located at the heart of Jolliya’s coveted  neighborhood. 180 powers street",
-                    color: ColorManager.grey10,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w400,
-                    maxLines: 3,
+                  Expanded(
+                    child: CustomText(
+                      text:
+                          "Immaculately Renovated Townhouse In Prime Williamsburg Located at the heart of Jolliya’s coveted  neighborhood. 180 powers street",
+                      color: ColorManager.grey10,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
+                      maxLines: 3,
+                    ),
                   ),
                   12.verticalSpace,
                   Row(

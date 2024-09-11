@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:homez/core/networking/api_constants.dart';
 import 'package:homez/core/networking/dio_manager.dart';
 import 'package:homez/features/forget_password/forget_password_state.dart';
 import 'package:logger/logger.dart';
@@ -17,28 +18,27 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordStates> {
   final formKey = GlobalKey<FormState>();
   final controllers = ForgetPasswordControllers();
 
-  Future<void> forgetPassword() async {
-    if (formKey.currentState!.validate()) {
-      emit(ForgetPasswordLoadingState());
-      try {
-        final response = await dioManager.post(
-          " UrlsStrings.forgetPasswordUrl",
-          data: FormData.fromMap({
-            "email": controllers.phoneController.text,
-          }),
-        );
-        if (response.statusCode == 200) {
-          emit(ForgetPasswordSuccessState());
-        } else {
-          Map<String, dynamic> json = jsonDecode(response.data);
-          emit(ForgetPasswordFailureState(msg: json["status"]));
-        }
-      } on DioException catch (e) {
-        handleDioException(e);
-      } catch (e) {
-        emit(ForgetPasswordFailureState(msg: 'An unknown error: $e'));
-        logger.e(e);
+  Future<void> sendCode({required String phone}) async {
+    emit(OtpLoadingState());
+    try {
+      final response = await dioManager.post(ApiConstants.sendCode,
+          data: FormData.fromMap(
+            {
+              "phone": phone,
+            },
+          ));
+
+      if (response.statusCode == 200) {
+        emit(OtpSuccessState());
+        logger.i(response.data["data"]["user"]['phone']);
+      } else {
+        emit(OtpFailureState(msg: response.data["message"]));
       }
+    } on DioException catch (e) {
+      handleDioException(e);
+    } catch (e) {
+      emit(OtpFailureState(msg: 'An unknown error: $e'));
+      logger.e(e);
     }
   }
 

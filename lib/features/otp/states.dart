@@ -17,3 +17,17 @@ class NewPasswordVisibilityState extends OtpStates {}
 class NewConfPasswordVisibilityState extends OtpStates {}
 
 class NetworkErrorState extends OtpStates {}
+
+class ReSendCodeLoadingState extends OtpStates {}
+
+class ReSendCodeFailedState extends OtpStates {
+  final String msg;
+
+  ReSendCodeFailedState({required this.msg});
+}
+
+class ReSendCodeSuccessState extends OtpStates {
+  final String msg;
+
+  ReSendCodeSuccessState({required this.msg});
+}

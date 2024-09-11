@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:homez/core/helpers/navigator.dart';
 import 'package:homez/core/theming/assets.dart';
 import 'package:homez/core/theming/colors.dart';
 import 'package:homez/core/widgets/custom_app_bar.dart';
 import 'package:homez/core/widgets/custom_elevated.dart';
 import 'package:homez/core/widgets/custom_text.dart';
 import 'package:homez/core/widgets/custom_text_form_field.dart';
+import 'package:homez/core/widgets/snack_bar.dart';
 import 'package:homez/core/widgets/svg_icons.dart';
+import 'package:homez/features/landing_screen/landing_screen_views.dart';
 
 import 'cubit.dart';
 import 'states.dart';
@@ -81,10 +84,41 @@ class _ChangePasswordBody extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 50.h),
-                CustomElevated(
-                  text: "Change",
-                  press: () {},
-                  btnColor: ColorManager.mainColor,
+                BlocConsumer<ChangePasswordCubit, ChangePasswordStates>(
+                  listener: (context, state) {
+                    if (state is ChangePasswordFailedState) {
+                      showMessage(
+                        message: state.msg,
+                        color: ColorManager.red,
+                      );
+                    } else if (state is NetworkErrorState) {
+                      showMessage(
+                        message: "No internet connection",
+                        color: ColorManager.red,
+                      );
+                    } else if (state is ChangePasswordSuccessState) {
+                      showMessage(
+                        message: "Password Updated Successfully",
+                        color: ColorManager.green,
+                      );
+                      MagicRouter.navigateTo(page: const LandingScreenViews());
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is ChangePasswordLoadingState) {
+                      return Center(
+                          child: CircularProgressIndicator(
+                        color: ColorManager.mainColor,
+                      ));
+                    }
+                    return CustomElevated(
+                      text: "Change",
+                      press: () {
+                        cubit.changePassword();
+                      },
+                      btnColor: ColorManager.mainColor,
+                    );
+                  },
                 ),
                 SizedBox(height: 100.h),
               ],

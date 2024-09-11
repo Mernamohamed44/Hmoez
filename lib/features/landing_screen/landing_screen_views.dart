@@ -28,9 +28,9 @@ class LandingBody extends StatelessWidget {
           backgroundColor: ColorManager.bgColor,
           body: cubit.getCurrentView,
           bottomNavigationBar: SalomonBottomBar(
-            selectedColorOpacity: 1,
-            // unselectedItemColor: ,
-            selectedItemColor: ColorManager.blueColor,
+              selectedColorOpacity: 1,
+              // unselectedItemColor: ,
+              selectedItemColor: ColorManager.blueColor,
               currentIndex: cubit.currentIndex,
               onTap: (index) {
                 cubit.changeNavigationBottom(index);

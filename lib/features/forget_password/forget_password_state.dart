@@ -13,3 +13,13 @@ class ForgetPasswordFailureState extends ForgetPasswordStates {
 
   ForgetPasswordFailureState({required this.msg});
 }
+
+class OtpLoadingState extends ForgetPasswordStates {}
+
+class OtpSuccessState extends ForgetPasswordStates {}
+
+class OtpFailureState extends ForgetPasswordStates {
+  final String msg;
+
+  OtpFailureState({required this.msg});
+}
